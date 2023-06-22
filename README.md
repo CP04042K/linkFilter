@@ -14,3 +14,11 @@ combine with fff of tomnomnom:
 ```
 linkFilter result.txt "domainandprotocol=true" | sort -u | fff
 ```
+resolve ip:
+```
+linkFilter g.txt "resolveip=onlyip"
+```
+to get associated hostname:
+```
+linkFilter g.txt "resolveip=true"
+```
