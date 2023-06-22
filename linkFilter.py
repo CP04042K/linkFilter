@@ -2,6 +2,7 @@
 # TODO: Implement !=, IN, NOT IN | Multithreading | check in response
 import sys
 from os.path import isfile
+import socket
 
 __import__("urllib3").disable_warnings()
 
@@ -9,7 +10,7 @@ __import__("urllib3").disable_warnings()
 Simple script to filter urls
 """
 
-FILTERS = ["extension", "domain", "start", "has", "protocol", "status", "domainonly", "domainandprotocol"]
+FILTERS = ["extension", "domain", "start", "has", "protocol", "status", "domainonly", "domainandprotocol", "resolveip"]
 
 def show_usage():
     print("""./linkFilter.py [url_file.txt] "[expression]" (e.g: ./linkFilter url_file.txt "extension='.js',domain=example.txt,status=200")
@@ -23,6 +24,7 @@ def show_usage():
     - status
     - domainonly
     - domainandprotocol
+    - resolveip
 """)
 
 def get_urls(raw_input):
@@ -61,7 +63,18 @@ def check_for_expression(url_parts, expressions):
             print(domain)
         elif key == "domainandprotocol":
             ok_flag = False
-            print(protocol + "://" + domain)
+            print(protocol + "://" + domain + "/")
+        elif key == "resolveip":                
+            ok_flag = False
+            try:
+                ip = socket.gethostbyname(domain)
+                if value == "onlyip":
+                    print(ip)
+                else:
+                    print(f"{domain} => {ip}")
+            except Exception:
+                print(f"Couldn't resolve {domain}")
+
 
             
 
