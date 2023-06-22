@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# TODO: Implement !=, IN, NOT IN | Multithreading
+# TODO: Implement !=, IN, NOT IN | Multithreading | check in response
 import sys
 from os.path import isfile
 
@@ -9,7 +9,7 @@ __import__("urllib3").disable_warnings()
 Simple script to filter urls
 """
 
-FILTERS = ["extension", "domain", "start", "has", "protocol", "status"]
+FILTERS = ["extension", "domain", "start", "has", "protocol", "status", "domainonly"]
 
 def show_usage():
     print("""./linkFilter.py [url_file.txt] "[expression]" (e.g: ./linkFilter url_file.txt "extension='.js',domain=example.txt,status=200")
@@ -21,6 +21,7 @@ def show_usage():
     - has
     - protocol
     - status
+    - domainonly
 """)
 
 def get_urls(raw_input):
@@ -54,6 +55,11 @@ def check_for_expression(url_parts, expressions):
             ok_flag = __import__("requests").get(full_url, verify=False).status_code == int(value)
         elif key == "protocol":
             ok_flag = protocol == value 
+        elif key == "domainonly":
+            ok_flag = False
+            print(domain)
+
+            
 
     return ok_flag
     
