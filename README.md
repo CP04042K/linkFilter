@@ -10,3 +10,7 @@ linkFilter wayback.txt "domainonly=true" | sort -u > subdomains.txt
 gospider -s https://example.txt/Pages/default.aspx > go.txt
 linkFilter go.txt "domainonly=true" | sort -u > subdomains.txt
 ```
+combine with fff of tomnomnom:
+```
+linkFilter result.txt "domainandprotocol=true" | sort -u | fff
+```
