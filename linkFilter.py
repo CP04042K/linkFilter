@@ -9,7 +9,7 @@ __import__("urllib3").disable_warnings()
 Simple script to filter urls
 """
 
-FILTERS = ["extension", "domain", "start", "has", "protocol", "status", "domainonly"]
+FILTERS = ["extension", "domain", "start", "has", "protocol", "status", "domainonly", "domainandprotocol"]
 
 def show_usage():
     print("""./linkFilter.py [url_file.txt] "[expression]" (e.g: ./linkFilter url_file.txt "extension='.js',domain=example.txt,status=200")
@@ -22,6 +22,7 @@ def show_usage():
     - protocol
     - status
     - domainonly
+    - domainandprotocol
 """)
 
 def get_urls(raw_input):
@@ -58,6 +59,9 @@ def check_for_expression(url_parts, expressions):
         elif key == "domainonly":
             ok_flag = False
             print(domain)
+        elif key == "domainandprotocol":
+            ok_flag = False
+            print(protocol + "://" + domain)
 
             
 
