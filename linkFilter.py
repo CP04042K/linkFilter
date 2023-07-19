@@ -3,6 +3,7 @@
 import sys
 from os.path import isfile
 import socket
+from re import findall
 
 __import__("urllib3").disable_warnings()
 
@@ -10,7 +11,13 @@ __import__("urllib3").disable_warnings()
 Simple script to filter urls
 """
 
-FILTERS = ["extension", "domain", "start", "has", "protocol", "status", "domainonly", "domainandprotocol", "resolveip"]
+FILTERS = ["extension", "domain", "start", "has", "protocol", "status", "domainonly", "domainandprotocol", "resolveip", "exceptcontain"]
+FILTER_PRITORITIES = {
+    "1": ["exceptcontain"],
+    "2": ["extension", "domain", "start", "has", "protocol", "status"],
+    "3": ["domainonly", "domainandprotocol", "resolveip"]
+}
+FILTER_PRITORITY_GROUP_QUANTITY = 3
 
 def show_usage():
     print("""./linkFilter.py [url_file.txt] "[expression]" (e.g: ./linkFilter url_file.txt "extension='.js',domain=example.txt,status=200")
@@ -21,15 +28,34 @@ def show_usage():
     - start
     - has
     - protocol
-    - status
     - domainonly
     - domainandprotocol
     - resolveip
+    - exceptcontain
 """)
 
 def get_urls(raw_input):
-    url = __import__("re").findall("(http|https|ftp|ws):\/\/([\w_-]+(?:(?:\.[\w_-]+)+))([\w.,@?^=%&:\/~+#-]*[\w@?^=%&\/~+#-])", raw_input)
+    url = findall("(http|https|ftp|ws):\/\/([\w_-]+(?:(?:\.[\w_-]+)+))([\w.,@?^=%&:\/~+#-]*[\w@?^=%&\/~+#-])?", raw_input)
     return url
+
+def sort_filters(filters):
+    tmp = []
+    for i in range(FILTER_PRITORITY_GROUP_QUANTITY):
+        tmp.append([])
+        
+    for filter in filters:
+        [key, _] = filter.split("=")
+        if key in FILTER_PRITORITIES["1"]:
+            tmp[0].append(filter)
+        elif key in FILTER_PRITORITIES["2"]:
+            tmp[1].append(filter)
+        else:
+            tmp[2].append(filter)
+    result = []
+
+    for i in range(FILTER_PRITORITY_GROUP_QUANTITY):
+        result.extend(tmp[i])
+    return result
 
 def parse_expression(raw_expression):
     expression = raw_expression.replace("[", "").replace("]", "").split(",")
@@ -43,29 +69,26 @@ def parse_expression(raw_expression):
 
 def check_for_expression(url_parts, expressions):
     [protocol, domain, endpoint] = url_parts
-    ok_flag = False
+    
+    expressions = sort_filters(expressions)
     full_url = "".join(url_parts)
     for expression in expressions:
         [key, value] = expression.split("=")
-        if key == "extension":
-            ok_flag = endpoint.endswith(value)
-        elif key == "has":
-            ok_flag = value in full_url.lower()
-        elif key == "domain":
-            ok_flag = value in domain 
-        elif key == "status":
-            full_url = protocol + "://" + domain + endpoint
-            ok_flag = __import__("requests").get(full_url, verify=False).status_code == int(value)
-        elif key == "protocol":
-            ok_flag = protocol == value 
+        if key == "extension" and not endpoint.endswith(value):
+            return False
+        elif key == "has" and not value in full_url.lower():
+            return False 
+        elif key == "domain" and not value in domain:
+            return False 
+        elif key == "protocol" and not protocol == value:
+            return False
         elif key == "domainonly":
-            ok_flag = False
-            print(domain)
+            return print(domain)
         elif key == "domainandprotocol":
-            ok_flag = False
-            print(protocol + "://" + domain + "/")
+            return print(protocol + "://" + domain + "/")   
+        elif key == "exceptcontain" and value in full_url:
+            return False  
         elif key == "resolveip":                
-            ok_flag = False
             try:
                 ip = socket.gethostbyname(domain)
                 if value == "onlyip":
@@ -74,11 +97,9 @@ def check_for_expression(url_parts, expressions):
                     print(f"{domain} => {ip}")
             except Exception:
                 print(f"Couldn't resolve {domain}")
-
-
-            
-
-    return ok_flag
+            finally:
+                return False
+    return True
     
 
 def main(args):
