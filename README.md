@@ -1,4 +1,4 @@
-# linkFilder
+# linkFilter
 i came into a situation where i have to find away to process an enormous amount of url, which is result from tools like gospider, waybackurls. This is the script i created for my personal use, to make life easier for me
 
 getting subdomains from list:
